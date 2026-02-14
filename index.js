@@ -130,6 +130,7 @@ Here is a previous health analysis:
 "${analysis}"
 
 Predict if the person is at risk today. End with a preventive recommendation.
+${AnswerInstruction}
 `;
 
   try {
@@ -159,4 +160,5 @@ Predict if the person is at risk today. End with a preventive recommendation.
 // 🚀 Lancer le serveur
 app.listen(3000, () => {
   console.log("Backend running at http://localhost:3000");
+
 });
