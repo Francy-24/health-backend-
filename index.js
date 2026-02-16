@@ -126,7 +126,7 @@ app.post("/predict", async (req, res) => {
   const prompt = `
 You are a medical AI specialized in health risk prediction.
 
-Here is a previous health analysis:
+Here is the previous health analysis:
 "${analysis}"
 
 Predict if the person is at risk today. End with a preventive recommendation.
@@ -162,3 +162,4 @@ app.listen(3000, () => {
   console.log("Backend running at http://localhost:3000");
 
 });
+
