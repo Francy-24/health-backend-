@@ -156,10 +156,47 @@ ${AnswerInstruction}
     console.error("Groq error:", error.message);
   }
 });
+//route chatbot
+app.post("/chatbot", async (req, res) => {
+  const { messages } = req.body;
+
+  if (!messages) {
+    return res.status(400).json({ error: "Messages required" });
+  }
+
+  try {
+    const response = await axios.post(
+      "https://api.groq.com/openai/v1/chat/completions",
+      {
+        model: "meta-llama/llama-4-scout-17b-16e-instruct",
+        messages: [
+          { role: "system", content: "You are a friendly medical assistant." },
+          ...messages
+        ],
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const reply =
+      response.data.choices[0].message.content;
+
+    res.json({ reply });
+
+  } catch (error) {
+    console.error(error.response?.data || error.message);
+    res.status(500).json({ error: "AI error" });
+  }
+});
 
 // 🚀 Lancer le serveur
 app.listen(3000, () => {
   console.log("Backend running at http://localhost:3000");
 
 });
+
 
