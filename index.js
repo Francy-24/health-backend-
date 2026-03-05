@@ -158,21 +158,19 @@ ${AnswerInstruction}
 });
 //route chatbot
 app.post("/chatbot", async (req, res) => {
-  const { messages } = req.body;
+  const { message } = req.body;
 
-  if (!messages) {
-    return res.status(400).json({ error: "Messages required" });
+  if (!message) {
+    return res.status(400).json({ error: "Message required" });
   }
 
   try {
     const response = await axios.post(
-      "https://api.groq.com/openai/v1/chat/completions",
+      "https://api.groq.com/openai/v1/completions", // 👈 endpoint completions
       {
         model: "meta-llama/llama-4-scout-17b-16e-instruct",
-        messages: [
-          { role: "system", content: "You are a friendly medical assistant." },
-          ...messages
-        ],
+        prompt: `You are a friendly medical assistant.\nUser: ${message}\nAssistant:`,
+        max_tokens: 200
       },
       {
         headers: {
@@ -182,21 +180,18 @@ app.post("/chatbot", async (req, res) => {
       }
     );
 
-    const reply =
-      response.data.choices[0].message.content;
-
+    const reply = response.data.choices[0].text;
     res.json({ reply });
-
   } catch (error) {
     console.error(error.response?.data || error.message);
-    res.status(500).json({ error: "AI error" });
+    res.status(error.response?.status || 500).json({ error: "AI error" });
   }
 });
-
 // 🚀 Lancer le serveur
 app.listen(3000, () => {
   console.log("Backend running at http://localhost:3000");
 
 });
+
 
 
