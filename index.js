@@ -1,4 +1,4 @@
-/*const express = require("express");
+const express = require("express");
 const cors = require("cors");
 const axios = require("axios");
 const nodemailer = require("nodemailer");
@@ -84,7 +84,7 @@ ${AnswerInstruction}
       }
     );
 
-    const analysis = response.data.choices[0].message.content.replace(/\*//*g, "");
+    const analysis = response.data.choices[0].message.content.replace(/\*/g, "");
     res.json({ analysis });
 
     // 🔔 Envoi d’alerte si "critical"
@@ -149,7 +149,7 @@ ${AnswerInstruction}
       }
     );
 
-    //const prediction = response.data.choices[0].message.content.replace(/\*//*g, "");
+    const prediction = response.data.choices[0].message.content.replace(/\*/g, "");
     res.json({ prediction });
 
   } catch (error) {
