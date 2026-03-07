@@ -1,4 +1,4 @@
-const express = require("express");
+/*const express = require("express");
 const cors = require("cors");
 const axios = require("axios");
 const nodemailer = require("nodemailer");
@@ -84,7 +84,7 @@ ${AnswerInstruction}
       }
     );
 
-    const analysis = response.data.choices[0].message.content.replace(/\*/g, "");
+    const analysis = response.data.choices[0].message.content.replace(/\*//*g, "");
     res.json({ analysis });
 
     // 🔔 Envoi d’alerte si "critical"
@@ -149,7 +149,7 @@ ${AnswerInstruction}
       }
     );
 
-    const prediction = response.data.choices[0].message.content.replace(/\*/g, "");
+    //const prediction = response.data.choices[0].message.content.replace(/\*//*g, "");
     res.json({ prediction });
 
   } catch (error) {
@@ -191,7 +191,151 @@ app.post("/chatbot", async (req, res) => {
 app.listen(3000, () => {
   console.log("Backend running at http://localhost:3000");
 
+});*/
+
+// backend_biogpt.js
+const express = require("express");
+const cors = require("cors");
+const axios = require("axios");
+const nodemailer = require("nodemailer");
+require("dotenv").config();
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// 🔑 Clés API et config email
+const HUGGINGFACE_API_TOKEN = process.env.HUGGINGFACE_API_TOKEN;
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASSWORD,
+  },
 });
+
+// 🔹 Fonction pour calculer l’âge
+function calculateAge(birthDateString) {
+  const birthDate = new Date(birthDateString);
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age;
+}
+
+// 🔹 Fonction pour appeler BioGPT
+async function callBioGPT(prompt) {
+  try {
+    const response = await axios.post(
+      "https://api-inference.huggingface.co/models/microsoft/biogpt",
+      { inputs: prompt },
+      {
+        headers: {
+          Authorization: `Bearer ${HUGGINGFACE_API_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data[0]?.generated_text || "No response from BioGPT";
+  } catch (error) {
+    console.error("BioGPT error:", error.response?.data || error.message);
+    return "Error: Unable to get response from BioGPT";
+  }
+}
+
+// 🔹 Route d’analyse médicale
+app.post("/analyze", async (req, res) => {
+  const { name, bpm, temperature, spo2, birthDate, weight, history, emergency, address } = req.body;
+  const age = calculateAge(birthDate);
+  const language = req.headers["accept-language"] || "English";
+
+  let AnswerInstruction;
+  if (language === "en") AnswerInstruction = "Answer in English, clearly, directly, and reassuringly.";
+  else if (language === "fr") AnswerInstruction = "Answer in French, clearly, directly, and reassuringly.";
+  else AnswerInstruction = "Answer clearly, directly, and reassuringly.";
+
+  const prompt = `
+You are a professional medical assistant AI.
+
+Patient information:
+- name: ${name}
+- Age: ${age}
+- Weight: ${weight} kg
+- Medical History: ${history}
+- Heart Rate (BPM): ${bpm}
+- Body Temperature (°C): ${temperature}
+- Oxygen Saturation (SpO₂): ${spo2}%
+
+Your task is to:
+1. Address ${name} directly.
+2. Give simple and easy-to-understand advice (like "drink water," "rest," "go to the hospital").
+3. State whether their condition is normal, needs monitoring, or is critical.
+4. If critical, clearly state to call an ambulance or go to hospital.
+${AnswerInstruction}
+`;
+
+  const analysis = await callBioGPT(prompt);
+  res.json({ analysis });
+
+  if (analysis.toLowerCase().includes("critical") && emergency) {
+    const mailOptions = {
+      from: process.env.GMAIL_USER,
+      to: emergency,
+      subject: "⚠️ Critical Medical Alert",
+      text: `Critical condition detected for ${name}.\n\nAnalysis:\n${analysis}\n\nLocation: ${address || "Not available"}`,
+    };
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) console.error("Email error:", error);
+      else console.log("Alert email sent:", info.response);
+    });
+  }
+});
+
+// 🔹 Route de prédiction basée sur l’analyse
+app.post("/predict", async (req, res) => {
+  const { analysis } = req.body;
+  if (!analysis) return res.status(400).json({ error: "Missing analysis text" });
+  const language = req.headers["accept-language"] || "English";
+
+  let AnswerInstruction;
+  if (language === "en") AnswerInstruction = "Answer in English, clearly, directly, and reassuringly.";
+  else if (language === "fr") AnswerInstruction = "Answer in French, clearly, directly, and reassuringly.";
+  else AnswerInstruction = "Answer clearly, directly, and reassuringly.";
+
+  const prompt = `
+You are a medical AI specialized in health risk prediction.
+
+Here is the previous health analysis:
+"${analysis}"
+
+Predict if the person is at risk today. End with a preventive recommendation.
+${AnswerInstruction}
+`;
+
+  const prediction = await callBioGPT(prompt);
+  res.json({ prediction });
+});
+
+// 🔹 Route chatbot médical
+app.post("/chatbot", async (req, res) => {
+  const { message } = req.body;
+  if (!message) return res.status(400).json({ error: "Message required" });
+
+  const prompt = `You are a friendly medical assistant.\nUser: ${message}\nAssistant:`;
+
+  const reply = await callBioGPT(prompt);
+  res.json({ reply });
+});
+
+// 🚀 Lancer le serveur
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Backend running at http://localhost:${PORT}`);
+});
+
 
 
 
