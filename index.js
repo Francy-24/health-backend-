@@ -159,19 +159,17 @@ ${AnswerInstruction}
 //route chatbot
 app.post("/chatbot", async (req, res) => {
   const { message } = req.body;
-  if (!message) return res.status(400).json({ error: "Missing analysis text" });
-   
-  const prompt = `
-"${message}"
-`;
+
+  if (!message) {
+    return res.status(400).json({ response: "Missing message" });
+  }
 
   try {
-    // 🔹 Essai avec IA en ligne (Groq)
     const response = await axios.post(
       "https://api.groq.com/openai/v1/chat/completions",
       {
         model: "meta-llama/llama-4-scout-17b-16e-instruct",
-        messages: [{ role: "user", content: prompt }],
+        messages: [{ role: "user", content: message }],
       },
       {
         headers: {
@@ -181,11 +179,14 @@ app.post("/chatbot", async (req, res) => {
       }
     );
 
-    const messages = response.data.choices[0].message.content.replace(/\*/g, "");
-    res.json({ messages });
+    const reply =
+      response.data.choices[0].message.content.replace(/\*/g, "");
+
+    res.json({ response: reply });
 
   } catch (error) {
     console.error("Groq error:", error.message);
+    res.status(500).json({ response: "AI service unavailable" });
   }
 });
 
