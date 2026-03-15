@@ -181,8 +181,8 @@ app.post("/chatbot", async (req, res) => {
       }
     );
 
-    const prediction = response.data.choices[0].message.content.replace(/\*/g, "");
-    res.json({ message });
+    const messages = response.data.choices[0].message.content.replace(/\*/g, "");
+    res.json({ messages });
 
   } catch (error) {
     console.error("Groq error:", error.message);
