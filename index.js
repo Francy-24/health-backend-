@@ -171,10 +171,8 @@ app.post("/chatbot", async (req, res) => {
         messages: [
           {
             role: "system",
-            content: `Tu es un assistant médical. Tu parles à ${name}. 
-                      Réponds uniquement aux questions médicales. 
-                      Si la question n'est pas médicale, dis simplement : 
-                      "Je ne peux répondre qu'aux questions de santé."`
+            content: `If the question isn't medical in nature, don't answer and tell the user that you can't answer that kind of question.
+            Don't say things like "Nice to meet you" to the user.`
           },
           { role: "user", content: message }
         ],
