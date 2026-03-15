@@ -158,11 +158,11 @@ ${AnswerInstruction}
 });
 //route chatbot
 app.post("/chatbot", async (req, res) => {
-  const { messages } = req.body;
-  if (!messages) return res.status(400).json({ error: "Missing analysis text" });
+  const { message } = req.body;
+  if (!message) return res.status(400).json({ error: "Missing analysis text" });
    
   const prompt = `
-"${messages}"
+"${message}"
 `;
 
   try {
@@ -182,7 +182,7 @@ app.post("/chatbot", async (req, res) => {
     );
 
     const prediction = response.data.choices[0].message.content.replace(/\*/g, "");
-    res.json({ prediction });
+    res.json({ message });
 
   } catch (error) {
     console.error("Groq error:", error.message);
