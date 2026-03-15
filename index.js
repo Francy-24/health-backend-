@@ -171,8 +171,11 @@ app.post("/chatbot", async (req, res) => {
         messages: [
           {
             role: "system",
-            content: `If the question isn't medical in nature, don't answer and tell the user that you can't answer that kind of question.
-            Don't say things like "Nice to meet you" to the user.`
+            content: `You are a medical assistant. 
+            Only answer questions related to health or medicine. 
+            If the question is not medical, reply with: 
+            "I can only answer health-related questions." 
+            Do not make greetings or personal comments.`
           },
           { role: "user", content: message }
         ],
@@ -192,9 +195,6 @@ app.post("/chatbot", async (req, res) => {
     res.status(500).json({ error: "AI service unavailable" });
   }
 });
-
-
-
 // 🚀 Lancer le serveur
 app.listen(3000, () => {
   console.log("Backend running at http://localhost:3000");
