@@ -158,10 +158,9 @@ ${AnswerInstruction}
 });
 //route chatbot
 app.post("/chatbot", async (req, res) => {
-  const { message } = req.body;
-
+  const { message } = req.body; // Flutter envoie {"message": "..."}
   if (!message) {
-    return res.status(400).json({ response: "Missing message" });
+    return res.status(400).json({ error: "Missing message" });
   }
 
   try {
@@ -173,22 +172,20 @@ app.post("/chatbot", async (req, res) => {
       },
       {
         headers: {
-          Authorization: `Bearer ${GROQ_API_KEY}`,
+          Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
           "Content-Type": "application/json",
         },
       }
     );
 
-    const reply =
-      response.data.choices[0].message.content.replace(/\*/g, "");
-
-    res.json({ response: reply });
-
+    const reply = response.data.choices[0].message.content.replace(/\*/g, "");
+    res.json({ response: reply }); // 🔹 même clé que Flutter attend
   } catch (error) {
-    console.error("Groq error:", error.message);
-    res.status(500).json({ response: "AI service unavailable" });
+    console.error("Groq error:", error.response?.data || error.message);
+    res.status(500).json({ error: "AI service unavailable" });
   }
 });
+
 
 // 🚀 Lancer le serveur
 app.listen(3000, () => {
