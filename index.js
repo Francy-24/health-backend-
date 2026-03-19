@@ -195,6 +195,38 @@ app.post("/chatbot", async (req, res) => {
     res.status(500).json({ error: "AI service unavailable" });
   }
 });
+//nearby hospitals
+app.post("/hospitals", async (req, res) => {
+  const { lat, lng } = req.body;
+
+  if (!lat || !lng) {
+    return res.status(400).json({ error: "Latitude and longitude are required" });
+  }
+
+  try {
+    // 🔹 Requête vers Nominatim (OpenStreetMap)
+    // Ici on cherche "hospital" dans une zone autour des coordonnées
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=hospital&limit=10&bounded=1&viewbox=${lng-0.05},${lat+0.05},${lng+0.05},${lat-0.05}`;
+
+    const response = await fetch(url, {
+      headers: { "User-Agent": "BuviFermeApp/1.0" } // obligatoire pour Nominatim
+    });
+    const data = await response.json();
+
+    // 🔹 Formatage des résultats
+    const hospitals = data.map(h => ({
+      name: h.display_name,
+      lat: h.lat,
+      lon: h.lon
+    }));
+
+    res.json({ hospitals });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error while retrieving hospitals" });
+  }
+});
+
 // 🚀 Lancer le serveur
 app.listen(3000, () => {
   console.log("Backend running at http://localhost:3000");
