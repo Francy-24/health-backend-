@@ -32,7 +32,7 @@ function calculateAge(birthDateString) {
 
 // 🔍 Route d’analyse médicale avec fallback
 app.post("/analyze", async (req, res) => {
-  const { name, bpm, temperature, spo2, birthDate, weight, history, emergency, address } = req.body;
+  const { name, bpm, temperature, spo2, birthDate, weight, history, emergency, address, sex, height, currentMedication, habits, allergies} = req.body;
   const age = calculateAge(birthDate);
   const language = req.headers["accept-language"] || "English";
 
@@ -49,10 +49,15 @@ app.post("/analyze", async (req, res) => {
 You are a professional medical assistant AI.
 
 Patient information:
-- name: ${name}
+- Name: ${name}
 - Age: ${age}
+- Sex: ${sex}
+- Height: ${height} m
 - Weight: ${weight} kg
-- Medical History: ${history}
+- Medical History: ${history} (⚠️ If the disease appeared only in the past, consider that it may not impact the current health condition.)
+- Current Medication: ${currentMedication}
+- Allergies: ${allergies}
+- Habits: ${habits}
 - Heart Rate (BPM): ${bpm}
 - Body Temperature (°C): ${temperature}
 - Oxygen Saturation (SpO₂): ${spo2}%
@@ -63,11 +68,12 @@ Your task is to:
 3. State whether their condition is normal, needs monitoring, or is critical.
 4. If it is critical, clearly state that an ambulance must be called or they must go to the hospital.
 5. Use simple language, without medical jargon, as if you were speaking to someone who is not a doctor.
-6. Never end with a question or phrase like "can i help you any further?"or"Do you need something else"
+6. Take into account their medical history, but if a disease was only in the past, consider that it may not affect their current health.
+7. Consider their current medication, allergies, habits, sex, height, when giving advice.
+8. Never end with a question or phrase like "can I help you any further?" or "Do you need something else".
 
 ${AnswerInstruction}
 `;
-
   try {
     // 🔹 Essai avec IA en ligne (Groq)
     const response = await axios.post(
