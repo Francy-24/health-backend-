@@ -236,15 +236,22 @@ app.post("/hospitals", async (req, res) => {
       }
     );
 
+    console.log("MODELS:", response.data);
+
     res.json(response.data);
+
   } catch (error) {
-    console.error(error.response?.data || error.message);
+    console.error("MODELS ERROR:");
+    console.error(error.response?.status);
+    console.error(error.response?.data);
+    console.error(error.message);
 
     res.status(500).json({
-      error: error.response?.data || error.message
+      error: error.response?.data || error.message,
     });
   }
 });
+    
                                  
     res.json({ hospitals });
   } catch (err) {
