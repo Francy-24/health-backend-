@@ -224,7 +224,28 @@ app.post("/hospitals", async (req, res) => {
       lat: h.lat,
       lon: h.lon
     }));
+//test models
+    app.get("/models", async (req, res) => {
+  try {
+    const response = await axios.get(
+      "https://api.groq.com/openai/v1/models",
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+        },
+      }
+    );
 
+    res.json(response.data);
+  } catch (error) {
+    console.error(error.response?.data || error.message);
+
+    res.status(500).json({
+      error: error.response?.data || error.message
+    });
+  }
+});
+                                 
     res.json({ hospitals });
   } catch (err) {
     console.error(err);
