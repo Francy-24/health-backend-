@@ -164,43 +164,42 @@ ${AnswerInstruction}
 });
 //route chatbot
 app.post("/chatbot", async (req, res) => {
-  const { message } = req.body;
-
-  if (!message) {
-    return res.status(400).json({ error: "Missing message" });
-  }
   try {
+    console.log("GROQ KEY LOADED:", !!process.env.GROQ_API_KEY);
+
     const response = await axios.post(
       "https://api.groq.com/openai/v1/chat/completions",
       {
         model: "meta-llama/llama-4-scout-17b-16e-instruct",
         messages: [
           {
-            role: "system",
-            content: `You are a medical assistant. 
-            Only answer questions related to health or medicine. 
-            If the question is not medical, reply with: 
-            "I can only answer health-related questions." 
-            Do not make greetings or personal comments.`
-          },
-          { role: "user", content: message }
-        ],
+            role: "user",
+            content: "Hello"
+          }
+        ]
       },
       {
         headers: {
           Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
-          "Content-Type": "application/json",
-        },
+          "Content-Type": "application/json"
+        }
       }
     );
 
-    const reply = response.data.choices[0].message.content;
-    res.json({ response: reply });
+    res.json(response.data);
+
   } catch (error) {
-    console.error("Groq error:", error.response?.data || error.message);
-    res.status(500).json({ error: "AI service unavailable" });
+    console.error("===== GROQ ERROR =====");
+    console.error(error.response?.status);
+    console.error(error.response?.data);
+    console.error(error.message);
+
+    return res.status(500).json({
+      error: error.response?.data || error.message
+    });
   }
 });
+      
 //nearby hospitals
 app.post("/hospitals", async (req, res) => {
   const { lat, lng } = req.body;
