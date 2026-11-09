@@ -79,7 +79,7 @@ ${AnswerInstruction}
     const response = await axios.post(
       "https://api.groq.com/openai/v1/chat/completions",
       {
-        model: "meta-llama/llama-4-scout-17b-16e-instruct",
+        model: "openai/gpt-oss-120b",
         messages: [{ role: "user", content: prompt }],
       },
       {
@@ -170,7 +170,7 @@ app.post("/chatbot", async (req, res) => {
     const response = await axios.post(
       "https://api.groq.com/openai/v1/chat/completions",
       {
-        model: "openai/gpt-oss-20b",
+        model: "openai/gpt-oss-120b",
         messages: [
           {
             role: "user",
