@@ -144,7 +144,7 @@ ${AnswerInstruction}
     const response = await axios.post(
       "https://api.groq.com/openai/v1/chat/completions",
       {
-        model: "meta-llama/llama-4-scout-17b-16e-instruct",
+        model: "openai/gpt-oss-120b",
         messages: [{ role: "user", content: prompt }],
       },
       {
@@ -164,39 +164,41 @@ ${AnswerInstruction}
 });
 //route chatbot
 app.post("/chatbot", async (req, res) => {
-  try {
-    console.log("GROQ KEY LOADED:", !!process.env.GROQ_API_KEY);
+  const { message } = req.body;
 
+  if (!message) {
+    return res.status(400).json({ error: "Missing message" });
+  }
+  try {
     const response = await axios.post(
       "https://api.groq.com/openai/v1/chat/completions",
       {
         model: "openai/gpt-oss-120b",
         messages: [
           {
-            role: "user",
-            content: "Hello"
-          }
-        ]
+            role: "system",
+            content: `You are a medical assistant. 
+            Only answer questions related to health or medicine. 
+            If the question is not medical, reply with: 
+            "I can only answer health-related questions." 
+            Do not make greetings or personal comments.`
+          },
+          { role: "user", content: message }
+        ],
       },
       {
         headers: {
           Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
-          "Content-Type": "application/json"
-        }
+          "Content-Type": "application/json",
+        },
       }
     );
 
-    res.json(response.data);
-
+    const reply = response.data.choices[0].message.content;
+    res.json({ response: reply });
   } catch (error) {
-    console.error("===== GROQ ERROR =====");
-    console.error(error.response?.status);
-    console.error(error.response?.data);
-    console.error(error.message);
-
-    return res.status(500).json({
-      error: error.response?.data || error.message
-    });
+    console.error("Groq error:", error.response?.data || error.message);
+    res.status(500).json({ error: "AI service unavailable" });
   }
 });
       
